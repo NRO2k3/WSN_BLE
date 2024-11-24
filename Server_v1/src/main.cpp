@@ -4,17 +4,17 @@
 #include <HTTPClient.h>
 
 #define SERVICE_UUID          "e8dd76ff-f3e9-4b8d-a7b8-fceeb450734d"
-#define CHARACTERISTIC_UUID_1 "b53df61e-a568-4d9e-8c2f-ade30942e056" 
-#define CHARACTERISTIC_UUID_2 "7db9ed65-9c6d-486c-8870-9f6a726503ce"       
+#define CHARACTERISTIC_UUID_1 "b53df61e-a568-4d9e-8c2f-ade30942e056"
+#define CHARACTERISTIC_UUID_2 "7db9ed65-9c6d-486c-8870-9f6a726503ce"
 
-const char* ssid = "Hai San Bao Linh"; 
-const char* password = "141887bl";   
-const char* server = "https://demo.thingsboard.io";  
-const char* token = "KNdbCnYNfz7b0Qthj2gy";        
+const char* ssid = "Hai San Bao Linh";
+const char* password = "141887bl";
+const char* server = "https://demo.thingsboard.io";
+const char* token = "KNdbCnYNfz7b0Qthj2gy";
 
-BLEServer* pServer = nullptr;                        
-BLECharacteristic* pCharacteristic_1 = nullptr;      
-BLECharacteristic* pCharacteristic_2 = nullptr;   
+BLEServer* pServer = nullptr;
+BLECharacteristic* pCharacteristic_1 = nullptr;
+BLECharacteristic* pCharacteristic_2 = nullptr;
 
 bool deviceConnected = false;
 float temperature;
@@ -34,7 +34,7 @@ String response;
 class TemperatureCallbacks: public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
     std::string stdvalue = pCharacteristic->getValue();
-    String value =  String(stdvalue.c_str());    
+    String value =  String(stdvalue.c_str());
     if (value.length() > 0) {
       int firstSpace = value.indexOf(' ');
       node_id = (value.substring(0, firstSpace)).toInt();
@@ -77,14 +77,33 @@ void sendDataToThingsBoard(String node_id, String temp, String humd) {
   http.end();
 }
 
+void sendDataChartToThingsBoard(String node_id, String temp, String humd) {
+  HTTPClient http;
+  String url = String(server) + "/api/v1/" + token + "/telemetry";
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+  String payload = "{\"t" + node_id + "\":" + temp + ",\"h" + node_id + "\":" + humd + "}";
+  int httpResponseCode = http.POST(payload);
+  Serial.print("Payload: ");
+  Serial.println(payload);
+  if (httpResponseCode > 0) {
+    Serial.println("Dữ liệu gửi thành công!");
+    Serial.println(http.getString());
+  } else {
+    Serial.print("Lỗi gửi dữ liệu. HTTP Response code: ");
+    Serial.println(httpResponseCode);
+  }
+  http.end();
+}
+
 void getThresholdsFromThingsBoard() {
   HTTPClient http;
-  String url = String(server) + "/api/v1/" + token + "/attributes?sharedKeys=thresholdTemp,thresholdHumd"; 
+  String url = String(server) + "/api/v1/" + token + "/attributes?sharedKeys=thresholdTemp,thresholdHumd";
   Serial.println(url);
   http.begin(url);
-  int httpResponseCode = http.GET();  
+  int httpResponseCode = http.GET();
   if (httpResponseCode > 0) {
-    response = http.getString();  
+    response = http.getString();
     Serial.println("Phản hồi từ ThingsBoard: " + response);
   } else {
     Serial.print("Lỗi lấy thuộc tính. HTTP Response code: ");
@@ -93,7 +112,7 @@ void getThresholdsFromThingsBoard() {
   http.end();
 }
 
-void setup() 
+void setup()
 {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
@@ -112,14 +131,14 @@ void setup()
   pCharacteristic_1 = pService->createCharacteristic(
                       CHARACTERISTIC_UUID_1,
                       BLECharacteristic::PROPERTY_NOTIFY
-                    ); 
+                    );
   pCharacteristic_2 = pService->createCharacteristic(
                       CHARACTERISTIC_UUID_2,
                       BLECharacteristic::PROPERTY_WRITE
                     );
-  pCharacteristic_2->setCallbacks(new TemperatureCallbacks());  
+  pCharacteristic_2->setCallbacks(new TemperatureCallbacks());
   pService->start();
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising(); 
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->setScanResponse(true); // Bật chế độ phản hồi khi quét
   pAdvertising->setMinPreferred(0x06); // Cấu hình quảng cáo đầy đủ
@@ -128,7 +147,7 @@ void setup()
   Serial.println("Waiting a client connection to notify...");
 }
 
-void loop() 
+void loop()
 {
     if (deviceConnected) {
       currentTime1 = millis();
@@ -136,9 +155,9 @@ void loop()
         previousTime1 = currentTime1;
         getThresholdsFromThingsBoard();
         String thresholdSend="";
-        int tempStart = response.indexOf("\"thresholdTemp\":") + 16; 
+        int tempStart = response.indexOf("\"thresholdTemp\":") + 16;
         int tempEnd = response.indexOf(",", tempStart);
-        int humdStart = response.indexOf("\"thresholdHumd\":") + 16; 
+        int humdStart = response.indexOf("\"thresholdHumd\":") + 16;
         int humdEnd = response.indexOf("}", humdStart);
         thresholdSend = response.substring(tempStart,tempEnd) + " " + response.substring(humdStart,humdEnd);
         pCharacteristic_1->setValue(thresholdSend.c_str());
@@ -151,6 +170,9 @@ void loop()
       for(int i = 0 ;i < numberNode; i++){
         if(data[i]=="") {
           sendDataToThingsBoard(String(i+1),"disconected","disconected");
+          if(i<5){
+          sendDataChartToThingsBoard(String(i+1),"0","0");
+          }
         } else {
           int startIndex = 0;
           int endIndex = data[i].indexOf(' ');
@@ -161,6 +183,10 @@ void loop()
           startIndex = endIndex + 1;
           String part3 = data[i].substring(startIndex);
           sendDataToThingsBoard(part1,part2,part3);
+          if(i<5){
+            sendDataChartToThingsBoard(part1,part2,part3);
+          }
+
         }
       }
       for(int i = 0 ;i < numberNode; i++){
