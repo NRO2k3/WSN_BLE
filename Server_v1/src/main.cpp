@@ -7,8 +7,8 @@
 #define CHARACTERISTIC_UUID_1 "b53df61e-a568-4d9e-8c2f-ade30942e056"
 #define CHARACTERISTIC_UUID_2 "7db9ed65-9c6d-486c-8870-9f6a726503ce"
 
-const char* ssid = "Hai San Bao Linh";
-const char* password = "141887bl";
+const char* ssid = "Redmi 9C";
+const char* password = "123456789";
 const char* server = "https://demo.thingsboard.io";
 const char* token = "KNdbCnYNfz7b0Qthj2gy";
 
@@ -151,7 +151,7 @@ void loop()
 {
     if (deviceConnected) {
       currentTime1 = millis();
-      if(currentTime1 - previousTime1 > 5000) {
+      if(currentTime1 - previousTime1 > 2000) {
         previousTime1 = currentTime1;
         getThresholdsFromThingsBoard();
         String thresholdSend="";
