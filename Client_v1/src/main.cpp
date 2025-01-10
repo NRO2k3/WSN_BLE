@@ -5,13 +5,13 @@
 
 // Tang 2
 
-#define SERVICE_UUID_1          "e8dd76ff-f3e9-4b8d-a7b8-fceeb450734d"
-#define CHARACTERISTIC_UUID_1_1 "b53df61e-a568-4d9e-8c2f-ade30942e056"
-#define CHARACTERISTIC_UUID_1_2 "7db9ed65-9c6d-486c-8870-9f6a726503ce"
+// #define SERVICE_UUID_1          "e8dd76ff-f3e9-4b8d-a7b8-fceeb450734d"
+// #define CHARACTERISTIC_UUID_1_1 "b53df61e-a568-4d9e-8c2f-ade30942e056"
+// #define CHARACTERISTIC_UUID_1_2 "7db9ed65-9c6d-486c-8870-9f6a726503ce"
 
-#define SERVICE_UUID_2          "67f13bdf-bf10-4312-878a-70108cb4c64c"
-#define CHARACTERISTIC_UUID_2_1 "69416cc5-b55e-477c-9d20-d7f516887a00"
-#define CHARACTERISTIC_UUID_2_2 "2d8c02fc-80ce-48b4-8a58-08bf6e3565d8"
+// #define SERVICE_UUID_2          "67f13bdf-bf10-4312-878a-70108cb4c64c"
+// #define CHARACTERISTIC_UUID_2_1 "69416cc5-b55e-477c-9d20-d7f516887a00"
+// #define CHARACTERISTIC_UUID_2_2 "2d8c02fc-80ce-48b4-8a58-08bf6e3565d8"
 
 // #define SERVICE_UUID_2          "65f11c92-db78-4d62-af27-e1509624dac2"
 // #define CHARACTERISTIC_UUID_2_1 "79713aa0-e42d-49dd-bb25-44652dfbc6cf"
@@ -19,13 +19,13 @@
 
 // Tang 3
 
-// #define SERVICE_UUID_1          "67f13bdf-bf10-4312-878a-70108cb4c64c"
-// #define CHARACTERISTIC_UUID_1_1 "69416cc5-b55e-477c-9d20-d7f516887a00"
-// #define CHARACTERISTIC_UUID_1_2 "2d8c02fc-80ce-48b4-8a58-08bf6e3565d8"
+#define SERVICE_UUID_1          "67f13bdf-bf10-4312-878a-70108cb4c64c"
+#define CHARACTERISTIC_UUID_1_1 "69416cc5-b55e-477c-9d20-d7f516887a00"
+#define CHARACTERISTIC_UUID_1_2 "2d8c02fc-80ce-48b4-8a58-08bf6e3565d8"
 
-// #define SERVICE_UUID_2          "c51aa79d-ffb9-4cd4-8034-91517c86a3f8"
-// #define CHARACTERISTIC_UUID_2_1 "5a4c43bb-17bf-4479-a4ad-64e0308b534b"
-// #define CHARACTERISTIC_UUID_2_2 "71a7dbc8-d68e-468c-b1f4-a4d1a084118c"
+#define SERVICE_UUID_2          "c51aa79d-ffb9-4cd4-8034-91517c86a3f8"
+#define CHARACTERISTIC_UUID_2_1 "5a4c43bb-17bf-4479-a4ad-64e0308b534b"
+#define CHARACTERISTIC_UUID_2_2 "71a7dbc8-d68e-468c-b1f4-a4d1a084118c"
 
 // #define SERVICE_UUID_1          "65f11c92-db78-4d62-af27-e1509624dac2"
 // #define CHARACTERISTIC_UUID_1_1 "79713aa0-e42d-49dd-bb25-44652dfbc6cf"
@@ -39,14 +39,16 @@
 // #define CHARACTERISTIC_UUID_2_1 "a5d76e09-b5fc-4073-9616-38a303e47048"
 // #define CHARACTERISTIC_UUID_2_2 "eb237967-e21b-48f8-9844-09c25bc89da7"
 
-#define LED_PIN 2
+#define LED_PIN_GREEN 25
+#define LED_PIN_RED 27//27
+#define LED_PIN_YELLOW 26//26
 #define ONE_WIRE_BUS 22 // Chân kết nối cảm biến DS18B20
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
-const int moistureSensorPin = 34;
+const int moistureSensorPin = 34; 
 
-BLEServer* pServer = nullptr;
-BLECharacteristic* pCharacteristic_1 = nullptr;
+BLEServer* pServer = nullptr;                        
+BLECharacteristic* pCharacteristic_1 = nullptr;      
 BLECharacteristic* pCharacteristic_2 = nullptr;
 
 BLEClient* pClient = nullptr;
@@ -54,8 +56,7 @@ BLEAdvertisedDevice* myDevice;
 BLERemoteCharacteristic* pRemoteCharacteristic_1 = nullptr;
 BLERemoteCharacteristic* pRemoteCharacteristic_2 = nullptr;
 
-
-bool doConnect = false;
+bool doConnect = false; 
 bool connected = false;
 bool deviceConnected = false;
 float temperatureSend;
@@ -64,8 +65,8 @@ int temperatureThreshold = 9999;
 int humidityThreshold = 9999;
 int count = 0;
 int numberClient = 3;
-unsigned long previousMillis = 0;
-unsigned long currentMillis = 0;
+unsigned long previousMillis = 0;  
+unsigned long currentMillis = 0; 
 unsigned long currentTime = 0;
 unsigned long previousTime = 0;
 unsigned long currentTime1 = 0;
@@ -73,13 +74,13 @@ unsigned long previousTime1 = 0;
 int numberNode = 11;
 String data[11];
 std::string messageReceive="";
-String node_id = "2";
+String node_id = "4";
 String Thres="";
 
 class TemperatureCallbacks: public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
     messageReceive = pCharacteristic->getValue();
-    String value =  String(messageReceive.c_str());
+    String value =  String(messageReceive.c_str());       
     if (value.length() > 0) {
       int firstSpace = value.indexOf(' ');
       int node_id = (value.substring(0, firstSpace)).toInt();
@@ -124,8 +125,8 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
         }
         myDevice = new BLEAdvertisedDevice(advertisedDevice);
         doConnect = true;
-    }
-  }
+    } 
+  } 
 };
 
 void notifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify){
@@ -138,7 +139,7 @@ void notifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* 
         Serial.print("Ngưỡng nhận từ server: ");
         Serial.println(temperatureThreshold);
         Serial.println(humidityThreshold);
-    }
+    } 
     else {
         Serial.println("Khong co du lieu nhan duoc.");
     }
@@ -146,10 +147,10 @@ void notifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* 
 
 bool connectToServer(){
     Serial.print("Attempt to connect: ");
-    Serial.println(myDevice->getAddress().toString().c_str());
+    Serial.println(myDevice->getAddress().toString().c_str()); 
     pClient = BLEDevice::createClient();
     pClient->setClientCallbacks(new MyClientCallback());
-
+    
     if (pClient->connect(myDevice)) {
         Serial.println("Connected to server");
         BLERemoteService* pRemoteService = pClient->getService(BLEUUID(SERVICE_UUID_1));
@@ -182,12 +183,16 @@ bool connectToServer(){
     }
     return true;
 }
-
-void setup()
+ 
+void setup() 
 {
     Serial.begin(115200);
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LOW);
+    pinMode(LED_PIN_GREEN, OUTPUT);  
+    digitalWrite(LED_PIN_GREEN, LOW);
+    pinMode(LED_PIN_RED, OUTPUT);  
+    digitalWrite(LED_PIN_RED, LOW);
+    pinMode(LED_PIN_YELLOW, OUTPUT);  
+    digitalWrite(LED_PIN_YELLOW, HIGH);
     pinMode(ONE_WIRE_BUS, INPUT_PULLUP);
     sensors.begin();
     for(int i = 0 ;i < numberNode; i++) {
@@ -209,21 +214,21 @@ void setup()
     pCharacteristic_1 = pService->createCharacteristic(
                                 CHARACTERISTIC_UUID_2_1,
                                 BLECharacteristic::PROPERTY_NOTIFY
-                                );
+                                ); 
     pCharacteristic_2 = pService->createCharacteristic(
                                 CHARACTERISTIC_UUID_2_2,
                                 BLECharacteristic::PROPERTY_WRITE
                                 );
-    pCharacteristic_2->setCallbacks(new TemperatureCallbacks());
+    pCharacteristic_2->setCallbacks(new TemperatureCallbacks());  
     pService->start();
-    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising(); 
     pAdvertising->addServiceUUID(SERVICE_UUID_2);
     pAdvertising->setScanResponse(true); // Bật chế độ phản hồi khi quét
     pAdvertising->setMinPreferred(0x06); // Cấu hình quảng cáo đầy đủ
     pAdvertising->setMinPreferred(0x12); // Cấu hình thêm cho BLE
-}
+} 
 
-void loop()
+void loop() 
 {
     if (doConnect){
         if (connectToServer()) {
@@ -239,12 +244,14 @@ void loop()
         if (currentMillis - previousMillis >= 2000) {
             previousMillis = currentMillis;
             sensors.requestTemperatures();
-            float temperature = sensors.getTempCByIndex(0);
+            float temperature = sensors.getTempCByIndex(0);  
             Serial.println("Nhiệt độ: " + String(temperature));
-            int moistureValue = analogRead(moistureSensorPin);
-            int moisturePercentage = 100 - (moistureValue / 4095.0) * 100.0;
+            int moistureValue = analogRead(moistureSensorPin);  
+            int moisturePercentage = 100 - (moistureValue / 4095.0) * 100.0;  
             temperatureSend = temperature;
             humiditySend = moisturePercentage;
+            // temperatureSend = 20;
+            // humiditySend = 15;
             String messageSend = node_id + " " + String(temperatureSend) + " " + String(humiditySend);
             Serial.println("Attempting to write value");
             Serial.println(messageSend);
@@ -262,16 +269,22 @@ void loop()
             for(int i = 0 ;i < numberNode; i++) {
                 data[i] = "";
             }
-
+             
         }
     } else {
         Serial.println("Characteristic is not writable or is nullptr.");
     }
 
-    if (temperatureSend > temperatureThreshold) {
-        digitalWrite(LED_PIN, HIGH);
+    if (temperatureSend > temperatureThreshold || humiditySend > humidityThreshold) {
+        digitalWrite(LED_PIN_RED, HIGH);  
     } else {
-        digitalWrite(LED_PIN, LOW);
+        digitalWrite(LED_PIN_RED, LOW); 
+    }
+
+    if (temperatureSend < temperatureThreshold || humiditySend < humidityThreshold) {
+        digitalWrite(LED_PIN_GREEN, HIGH);  
+    } else {
+        digitalWrite(LED_PIN_GREEN, LOW); 
     }
 
     if (!connected) {
