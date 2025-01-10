@@ -7,8 +7,8 @@
 #define CHARACTERISTIC_UUID_1 "b53df61e-a568-4d9e-8c2f-ade30942e056" 
 #define CHARACTERISTIC_UUID_2 "7db9ed65-9c6d-486c-8870-9f6a726503ce"       
 
-const char* ssid = "Hai San Bao Linh"; 
-const char* password = "141887bl";   
+const char* ssid = "Redmi 9C"; 
+const char* password = "123456789";   
 const char* server = "https://demo.thingsboard.io";  
 const char* token = "KNdbCnYNfz7b0Qthj2gy";        
 
@@ -77,6 +77,25 @@ void sendDataToThingsBoard(String node_id, String temp, String humd) {
   http.end();
 }
 
+void sendDataChartToThingsBoard(String node_id, String temp, String humd) {
+  HTTPClient http;
+  String url = String(server) + "/api/v1/" + token + "/telemetry";
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+  String payload = "{\"t" + node_id + "\":" + temp + ",\"h" + node_id + "\":" + humd + "}";
+  int httpResponseCode = http.POST(payload);
+  Serial.print("Payload: ");
+  Serial.println(payload);
+  if (httpResponseCode > 0) {
+    Serial.println("Dữ liệu gửi thành công!");
+    Serial.println(http.getString());
+  } else {
+    Serial.print("Lỗi gửi dữ liệu. HTTP Response code: ");
+    Serial.println(httpResponseCode);
+  }
+  http.end();
+}
+
 void getThresholdsFromThingsBoard() {
   HTTPClient http;
   String url = String(server) + "/api/v1/" + token + "/attributes?sharedKeys=thresholdTemp,thresholdHumd"; 
@@ -132,7 +151,7 @@ void loop()
 {
     if (deviceConnected) {
       currentTime1 = millis();
-      if(currentTime1 - previousTime1 > 5000) {
+      if(currentTime1 - previousTime1 > 2000) {
         previousTime1 = currentTime1;
         getThresholdsFromThingsBoard();
         String thresholdSend="";
@@ -146,11 +165,14 @@ void loop()
       }
     }
     currentTime2 = millis();
-    if(currentTime2 - previousTime2 > 10000) {
+    if(currentTime2 - previousTime2 > 20000) {
       previousTime2 = currentTime2;
       for(int i = 0 ;i < numberNode; i++){
         if(data[i]=="") {
           sendDataToThingsBoard(String(i+1),"disconected","disconected");
+          if(i<5){
+          sendDataChartToThingsBoard(String(i+1),"0","0");
+          }
         } else {
           int startIndex = 0;
           int endIndex = data[i].indexOf(' ');
@@ -161,6 +183,10 @@ void loop()
           startIndex = endIndex + 1;
           String part3 = data[i].substring(startIndex);
           sendDataToThingsBoard(part1,part2,part3);
+          if(i<5){
+            sendDataChartToThingsBoard(part1,part2,part3);
+          }
+          
         }
       }
       for(int i = 0 ;i < numberNode; i++){
